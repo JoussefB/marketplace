@@ -1,2 +1,19 @@
 ### Test home page
 GET http://localhost:3000/
+###
+
+### GET alle skins 
+GET http://localhost:3000/api/skins
+
+###
+
+### nieuwe skin toevoegen
+POST http://localhost:3000/api/skins
+Content-Type: application/json
+
+{
+    "name": "Glacier",
+    "weaponType": "Assault Rifle",
+    "rarity": "Epic",
+    "releaseSeason": "Operation Black Ice"
+}

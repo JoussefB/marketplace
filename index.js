@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express'); 
 const mongoose = require('mongoose');
+const skinsRouter = require('./routes/skins'); 
 
 const app = express();
 
@@ -9,6 +10,8 @@ app.use(express.json());
 mongoose.connect(process.env.MONGO_URI)
     .then(() => console.log('Succesvol verbonden met MongoDB...'))
     .catch(err => console.error('Kon geen verbinding maken met MongoDB:', err));
+
+app.use('/api/skins',skinsRouter);
 
 app.get('/', (req, res) => {
     res.send('Welcome to the marketplace'); 
