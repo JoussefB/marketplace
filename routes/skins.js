@@ -1,6 +1,18 @@
 const express = require('express');
 const router = express.Router();
 const Skin = require('../models/Skin');
+const joi = require('joi');
+
+function validateSkin(skin) {
+    const schema = joi.object({
+        name: joi.string().min(3).max(50).required(),
+        weaponType: joi.string().min(3).max(50).required(),
+        rarity: joi.string().valid("Common","Uncommon","Rare","Epic","Legendary").required(),
+        releaseSeason: joi.string().required()
+    });
+
+    return schema.validate(skin);
+}
 
 router.get('/', async (req, res) => {
     try {
@@ -13,6 +25,11 @@ router.get('/', async (req, res) => {
 
 
 router.post('/', async (req, res) => {
+
+    const { error } = validateSkin(req.body);
+    if (error) {
+        return res.status(400).send({ message: error.details[0].message });
+    }
     try {
         const skin = new Skin({
             name: req.body.name,
