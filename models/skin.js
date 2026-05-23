@@ -20,4 +20,7 @@ const skinSchema = new mongoose.Schema({
 
 const Skin = mongoose.model('Skin', skinSchema);
 
-module.exports = Skin;
+module.exports = {
+    Skin: mongoose.model('Skin', skinSchema),
+    skinSchema: skinSchema
+};

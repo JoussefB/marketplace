@@ -28,3 +28,15 @@ Content-Type: application/json
     "rarity": "Exotic",
     "releaseSeason": "Operation Black Ice"
 }
+
+### GET alle gebruikers
+GET http://localhost:3000/api/users
+
+### nieuwe gebruiker toevoegen
+POST http://localhost:3000/api/users
+Content-Type: application/json
+
+{
+    "username": "Joussef",
+    "email": "joussef.boulbane@student.vives.be"
+}
