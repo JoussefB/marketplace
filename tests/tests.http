@@ -40,3 +40,23 @@ Content-Type: application/json
     "username": "Joussef",
     "email": "joussef.boulbane@student.vives.be"
 }
+
+### GET alle actieve marktplaats advertenties
+GET http://localhost:3000/api/listings
+
+###
+
+### POST een skin te koop
+POST http://localhost:3000/api/listings
+Content-Type: application/json
+
+{
+    "sellerId": "6a11abbbc50b6fdeedc2829d", 
+    "price": 350,
+    "skinData": {
+        "name": "Glacier",
+        "weaponType": "Assault Rifle",
+        "rarity": "Epic",
+        "releaseSeason": "Operation Black Ice"
+    }
+}

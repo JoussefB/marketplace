@@ -3,6 +3,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const skinsRouter = require('./routes/skins'); 
 const usersRouter = require('./routes/users');
+const listingsRouter = require('./routes/listings');
 
 const app = express();
 
@@ -14,6 +15,8 @@ mongoose.connect(process.env.MONGO_URI)
 
 app.use('/api/skins',skinsRouter);
 app.use('/api/users',usersRouter);
+app.use('/api/listings',listingsRouter);
+
 
 app.get('/', (req, res) => {
     res.send('Welcome to the marketplace'); 
