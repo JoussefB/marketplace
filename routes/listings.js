@@ -3,6 +3,7 @@ const router = express.Router();
 const joi = require('joi');
 const Listing = require('../models/Listing');
 const { User } = require('../models/User');
+const auth = require('../middleware/auth');
 
 function validateListing(listing) {
     const schema = joi.object({
@@ -29,16 +30,16 @@ router.get('/', async (req, res) => {
     }
 });
 
-router.post('/', async (req, res) => {
+router.post('/',auth, async (req, res) => {
     const { error } = validateListing(req.body);
     if (error) return res.status(400).send({ message: error.details[0].message });
 
     try {
-        const seller = await User.findById(req.body.sellerId);
+        const seller = await User.findById(req.user._id);
         if (!seller) return res.status(404).send({ message: 'Verkoper niet gevonden.' });
 
         const listing = new Listing({
-            seller: req.body.sellerId,
+            seller: req.user._id,
             skin: req.body.skinData,
             price: req.body.price
         });
