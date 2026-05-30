@@ -1,15 +1,42 @@
+@baseUrl = http://localhost:3000
+@token = """
+@adminToken = ""
+
 ### Test home page
-GET http://localhost:3000/
+GET {{baseUrl}}/
+
+########### AUTHENTICATIE & AUTORISATIE
+
+### Registreren 
+POST {{baseUrl}}/api/auth/register
+Content-Type: application/json
+
+{
+    "username": "Joussef3",
+    "email": "joussef3@student.vives.be",
+    "password": "Azerty123"
+}
+
+### Inloggen 
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+    "email": "joussef@student.vives.be",
+    "password": "Azerty123"
+}
+
 ###
+
+########### SKINS
 
 ### GET alle skins 
-GET http://localhost:3000/api/skins
+GET {{baseUrl}}/api/skins
 
-###
-
-### nieuwe skin toevoegen
-POST http://localhost:3000/api/skins
+### Nieuwe skin toevoegen (alleen admin)
+POST {{baseUrl}}/api/skins
 Content-Type: application/json
+x-auth-token: {{adminToken}}
 
 {
     "name": "Glacier",
@@ -18,40 +45,35 @@ Content-Type: application/json
     "releaseSeason": "Operation Black Ice"
 }
 
-### POST met ongeldige data
-POST http://localhost:3000/api/skins    
-Content-Type: application/json
-
-{
-    "name": "Glacier",
-    "weaponType": "MP7",
-    "rarity": "Exotic",
-    "releaseSeason": "Operation Black Ice"
-}
-
-### GET alle gebruikers
-GET http://localhost:3000/api/users
-
-### nieuwe gebruiker toevoegen
-POST http://localhost:3000/api/users
-Content-Type: application/json
-
-{
-    "username": "Joussef",
-    "email": "joussef.boulbane@student.vives.be"
-}
-
-### GET alle actieve marktplaats advertenties
-GET http://localhost:3000/api/listings
-
 ###
 
-### POST een skin te koop
-POST http://localhost:3000/api/listings
+########### GEBRUIKERS & MARKTPLAATS
+
+### GET alle gebruikers (alleen admin)
+GET {{baseUrl}}/api/users
+x-auth-token: {{adminToken}}
+
+### Nieuwe gebruiker toevoegen (alleen admin)
+POST {{baseUrl}}/api/users
 Content-Type: application/json
+x-auth-token: {{adminToken}}
 
 {
-    "sellerId": "6a11abbbc50b6fdeedc2829d", 
+    "username": "NieuweUser",
+    "email": "nieuwe.user@student.vives.be",
+    "password": "Azerty123",
+    "credits": 120
+}
+
+### GET alle advertenties
+GET {{baseUrl}}/api/listings
+
+### Skin te koop zetten 
+POST {{baseUrl}}/api/listings
+Content-Type: application/json
+x-auth-token: {{token}}
+
+{
     "price": 350,
     "skinData": {
         "name": "Glacier",

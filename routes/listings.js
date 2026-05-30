@@ -7,7 +7,6 @@ const auth = require('../middleware/auth');
 
 function validateListing(listing) {
     const schema = joi.object({
-        sellerId: joi.string().required(), 
         price: joi.number().min(1).required(),
         skinData: joi.object({
             name: joi.string().required(),

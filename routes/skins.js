@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const Skin = require('../models/Skin');
 const joi = require('joi');
+const auth = require('../middleware/auth');
+const admin = require('../middleware/admin');
 
 function validateSkin(skin) {
     const schema = joi.object({
@@ -24,7 +26,7 @@ router.get('/', async (req, res) => {
 });
 
 
-router.post('/', async (req, res) => {
+router.post('/',[auth,admin], async (req, res) => {
 
     const { error } = validateSkin(req.body);
     if (error) {
@@ -41,7 +43,7 @@ router.post('/', async (req, res) => {
         const savedSkin = await skin.save(); 
         res.status(201).send(savedSkin);
     } catch (error) {
-        res.status(400).send({ message: 'Kon de skin niet opslaan. Kijk je data na.' });
+        res.status(500).send({ message: 'Kon de skin niet opslaan. Kijk je data na.' });
     }
 });
 
