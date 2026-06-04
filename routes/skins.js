@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const Skin = require('../models/Skin');
+const { Skin } = require('../models/Skin');
 const joi = require('joi');
 const auth = require('../middleware/auth');
 const admin = require('../middleware/admin');
