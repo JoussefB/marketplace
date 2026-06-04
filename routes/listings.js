@@ -5,6 +5,7 @@ const Listing = require('../models/Listing');
 const Transaction = require('../models/Transaction');
 const { User } = require('../models/User');
 const auth = require('../middleware/auth');
+const validateObjectId = require('../middleware/validateObjectId');
 
 function validateListing(listing) {
     const schema = joi.object({
@@ -19,6 +20,14 @@ function validateListing(listing) {
     return schema.validate(listing);
 }
 
+function validateListingUpdate(listing) {
+    const schema = joi.object({
+        price: joi.number().min(1).required(),
+        status: joi.string().valid('active', 'sold', 'cancelled')
+    });
+    return schema.validate(listing);
+}
+
 
 router.get('/', async (req, res) => {
     try {
@@ -27,6 +36,17 @@ router.get('/', async (req, res) => {
         res.send(listings);
     } catch (error) {
         res.status(500).send({ message: 'Serverfout bij het ophalen van de marktplaats.' });
+    }
+});
+
+router.get('/:id', validateObjectId, async (req, res) => {
+    try {
+        const listing = await Listing.findById(req.params.id).populate('seller', 'username');
+        if (!listing) return res.status(404).send({ message: 'Advertentie niet gevonden.' });
+
+        res.send(listing);
+    } catch (error) {
+        res.status(500).send({ message: 'Serverfout bij het ophalen van de advertentie.' });
     }
 });
 
@@ -51,7 +71,7 @@ router.post('/',auth, async (req, res) => {
     }
 });
 
-router.post('/:id/buy', auth, async (req, res) => {
+router.post('/:id/buy', [auth, validateObjectId], async (req, res) => {
     try {
         const listing = await Listing.findById(req.params.id);
         if (!listing) return res.status(404).send({ message: 'Advertentie niet gevonden.' });
@@ -88,6 +108,44 @@ router.post('/:id/buy', auth, async (req, res) => {
         });
     } catch (error) {
         res.status(500).send({ message: 'Serverfout bij het kopen van de skin.' });
+    }
+});
+
+router.put('/:id', [auth, validateObjectId], async (req, res) => {
+    const { error } = validateListingUpdate(req.body);
+    if (error) return res.status(400).send({ message: error.details[0].message });
+
+    try {
+        const listing = await Listing.findById(req.params.id);
+        if (!listing) return res.status(404).send({ message: 'Advertentie niet gevonden.' });
+
+        if (listing.seller.toString() !== req.user._id && !req.user.isAdmin) {
+            return res.status(403).send({ message: 'Je mag deze advertentie niet aanpassen.' });
+        }
+
+        listing.price = req.body.price;
+        if (req.body.status) listing.status = req.body.status;
+
+        const savedListing = await listing.save();
+        res.send(savedListing);
+    } catch (error) {
+        res.status(500).send({ message: 'Kon de advertentie niet aanpassen.' });
+    }
+});
+
+router.delete('/:id', [auth, validateObjectId], async (req, res) => {
+    try {
+        const listing = await Listing.findById(req.params.id);
+        if (!listing) return res.status(404).send({ message: 'Advertentie niet gevonden.' });
+
+        if (listing.seller.toString() !== req.user._id && !req.user.isAdmin) {
+            return res.status(403).send({ message: 'Je mag deze advertentie niet verwijderen.' });
+        }
+
+        await Listing.findByIdAndDelete(req.params.id);
+        res.send({ message: 'Advertentie verwijderd.', listing });
+    } catch (error) {
+        res.status(500).send({ message: 'Kon de advertentie niet verwijderen.' });
     }
 });
 

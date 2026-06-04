@@ -4,6 +4,7 @@ const { Skin } = require('../models/Skin');
 const joi = require('joi');
 const auth = require('../middleware/auth');
 const admin = require('../middleware/admin');
+const validateObjectId = require('../middleware/validateObjectId');
 
 function validateSkin(skin) {
     const schema = joi.object({
@@ -22,6 +23,17 @@ router.get('/', async (req, res) => {
         res.send(skins); 
     } catch (error) {
         res.status(500).send({ message: 'Er ging iets fout bij het ophalen van de skins.' });
+    }
+});
+
+router.get('/:id', validateObjectId, async (req, res) => {
+    try {
+        const skin = await Skin.findById(req.params.id);
+        if (!skin) return res.status(404).send({ message: 'Skin niet gevonden.' });
+
+        res.send(skin);
+    } catch (error) {
+        res.status(500).send({ message: 'Er ging iets fout bij het ophalen van de skin.' });
     }
 });
 
@@ -44,6 +56,41 @@ router.post('/',[auth,admin], async (req, res) => {
         res.status(201).send(savedSkin);
     } catch (error) {
         res.status(500).send({ message: 'Kon de skin niet opslaan. Kijk je data na.' });
+    }
+});
+
+router.put('/:id', [auth, admin, validateObjectId], async (req, res) => {
+    const { error } = validateSkin(req.body);
+    if (error) return res.status(400).send({ message: error.details[0].message });
+
+    try {
+        const skin = await Skin.findByIdAndUpdate(
+            req.params.id,
+            {
+                name: req.body.name,
+                weaponType: req.body.weaponType,
+                rarity: req.body.rarity,
+                releaseSeason: req.body.releaseSeason
+            },
+            { new: true, runValidators: true }
+        );
+
+        if (!skin) return res.status(404).send({ message: 'Skin niet gevonden.' });
+
+        res.send(skin);
+    } catch (error) {
+        res.status(500).send({ message: 'Kon de skin niet aanpassen.' });
+    }
+});
+
+router.delete('/:id', [auth, admin, validateObjectId], async (req, res) => {
+    try {
+        const skin = await Skin.findByIdAndDelete(req.params.id);
+        if (!skin) return res.status(404).send({ message: 'Skin niet gevonden.' });
+
+        res.send({ message: 'Skin verwijderd.', skin });
+    } catch (error) {
+        res.status(500).send({ message: 'Kon de skin niet verwijderen.' });
     }
 });
 

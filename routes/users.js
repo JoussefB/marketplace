@@ -5,6 +5,7 @@ const joi = require('joi');
 const { User } = require('../models/User');
 const auth = require('../middleware/auth');
 const admin = require('../middleware/admin');
+const validateObjectId = require('../middleware/validateObjectId');
 
 // Joi validatie voor een nieuwe gebruiker
 function validateUser(user) {
@@ -24,6 +25,17 @@ router.get('/', [auth, admin], async (req, res) => {
         res.send(users);
     } catch (error) {
         res.status(500).send({ message: 'Serverfout bij ophalen gebruikers.' });
+    }
+});
+
+router.get('/:id', [auth, admin, validateObjectId], async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id).select('-password');
+        if (!user) return res.status(404).send({ message: 'Gebruiker niet gevonden.' });
+
+        res.send(user);
+    } catch (error) {
+        res.status(500).send({ message: 'Serverfout bij ophalen gebruiker.' });
     }
 });
 
@@ -53,6 +65,50 @@ router.post('/', [auth, admin], async (req, res) => {
         });
     } catch (error) {
         res.status(500).send({ message: 'Kon gebruiker niet aanmaken (mogelijk bestaat de naam/email al).' });
+    }
+});
+
+router.put('/:id', [auth, admin, validateObjectId], async (req, res) => {
+    const { error } = validateUser(req.body);
+    if (error) return res.status(400).send({ message: error.details[0].message });
+
+    try {
+        const update = {
+            username: req.body.username,
+            email: req.body.email,
+            credits: req.body.credits
+        };
+
+        if (req.body.password) {
+            const salt = await bcrypt.genSalt(10);
+            update.password = await bcrypt.hash(req.body.password, salt);
+        }
+
+        const user = await User.findByIdAndUpdate(req.params.id, update, {
+            new: true,
+            runValidators: true
+        }).select('-password');
+
+        if (!user) return res.status(404).send({ message: 'Gebruiker niet gevonden.' });
+
+        res.send(user);
+    } catch (error) {
+        if (error.code === 11000) {
+            return res.status(400).send({ message: 'Gebruiker met deze naam/email bestaat al.' });
+        }
+
+        res.status(500).send({ message: 'Kon gebruiker niet aanpassen.' });
+    }
+});
+
+router.delete('/:id', [auth, admin, validateObjectId], async (req, res) => {
+    try {
+        const user = await User.findByIdAndDelete(req.params.id).select('-password');
+        if (!user) return res.status(404).send({ message: 'Gebruiker niet gevonden.' });
+
+        res.send({ message: 'Gebruiker verwijderd.', user });
+    } catch (error) {
+        res.status(500).send({ message: 'Kon gebruiker niet verwijderen.' });
     }
 });
 
