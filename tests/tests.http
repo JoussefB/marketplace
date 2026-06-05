@@ -1,4 +1,4 @@
-@baseUrl = http://localhost:3000
+@baseUrl = https://marketplace-xbmm.onrender.com
 @token =
 @adminToken =
 @skinId =
@@ -8,6 +8,9 @@
 
 ### Home
 GET {{baseUrl}}/
+
+### Swagger OpenAPI JSON
+GET {{baseUrl}}/api-docs.json
 
 ########### AUTH
 

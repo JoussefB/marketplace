@@ -108,6 +108,14 @@ test('POST /api/auth/register creates a user without returning a password', asyn
     assert.notStrictEqual(user.password, 'Azerty123');
 });
 
+test('GET /api-docs.json returns the OpenAPI documentation', async () => {
+    const res = await sendRequest('GET', '/api-docs.json');
+
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(res.body.openapi, '3.0.0');
+    assert.strictEqual(res.body.info.title, 'Rainbow Six Siege Marketplace API');
+});
+
 test('POST /api/auth/login returns a JWT for valid credentials', async () => {
     await createUser({
         username: 'LoginUser',

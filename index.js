@@ -1,6 +1,8 @@
 require('dotenv').config();
 const express = require('express'); 
 const mongoose = require('mongoose');
+const swaggerUi = require('swagger-ui-express');
+const swaggerDocument = require('./swagger.json');
 const skinsRouter = require('./routes/skins'); 
 const usersRouter = require('./routes/users');
 const listingsRouter = require('./routes/listings');
@@ -10,6 +12,7 @@ const transactionsRouter = require('./routes/transactions');
 const app = express();
 
 app.use(express.json());
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 function connectToDatabase() {
     return mongoose.connect(process.env.MONGO_URI)
@@ -23,6 +26,9 @@ app.use('/api/listings',listingsRouter);
 app.use('/api/auth',authRouter);
 app.use('/api/transactions',transactionsRouter);
 
+app.get('/api-docs.json', (req, res) => {
+    res.send(swaggerDocument);
+});
 
 app.get('/', (req, res) => {
     res.send('Welcome to the marketplace'); 

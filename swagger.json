@@ -1,0 +1,505 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Rainbow Six Siege Marketplace API",
+    "version": "1.0.0",
+    "description": "REST API voor een Rainbow Six Siege marketplace met users, skins, listings en transactions."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000",
+      "description": "Lokale development server"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "AuthToken": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "x-auth-token"
+      }
+    },
+    "schemas": {
+      "RegisterRequest": {
+        "type": "object",
+        "required": ["username", "email", "password"],
+        "properties": {
+          "username": { "type": "string", "example": "Joussef3" },
+          "email": { "type": "string", "example": "joussef3@student.vives.be" },
+          "password": { "type": "string", "example": "Azerty123" }
+        }
+      },
+      "LoginRequest": {
+        "type": "object",
+        "required": ["email", "password"],
+        "properties": {
+          "email": { "type": "string", "example": "joussef3@student.vives.be" },
+          "password": { "type": "string", "example": "Azerty123" }
+        }
+      },
+      "Skin": {
+        "type": "object",
+        "properties": {
+          "_id": { "type": "string", "example": "665f2d4b4c6a8a1b2c3d4e5f" },
+          "name": { "type": "string", "example": "Glacier" },
+          "weaponType": { "type": "string", "example": "MP7" },
+          "rarity": { "type": "string", "example": "Epic" },
+          "releaseSeason": { "type": "string", "example": "Operation Black Ice" }
+        }
+      },
+      "SkinRequest": {
+        "type": "object",
+        "required": ["name", "weaponType", "rarity", "releaseSeason"],
+        "properties": {
+          "name": { "type": "string", "example": "Glacier" },
+          "weaponType": { "type": "string", "example": "MP7" },
+          "rarity": {
+            "type": "string",
+            "enum": ["Common", "Uncommon", "Rare", "Epic", "Legendary"],
+            "example": "Epic"
+          },
+          "releaseSeason": { "type": "string", "example": "Operation Black Ice" }
+        }
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "_id": { "type": "string", "example": "665f2d4b4c6a8a1b2c3d4e5f" },
+          "username": { "type": "string", "example": "Joussef3" },
+          "email": { "type": "string", "example": "joussef3@student.vives.be" },
+          "credits": { "type": "number", "example": 120 },
+          "isAdmin": { "type": "boolean", "example": false },
+          "inventory": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Skin" }
+          }
+        }
+      },
+      "UserRequest": {
+        "type": "object",
+        "required": ["username", "email", "password"],
+        "properties": {
+          "username": { "type": "string", "example": "NieuweUser" },
+          "email": { "type": "string", "example": "nieuwe.user@student.vives.be" },
+          "password": { "type": "string", "example": "Azerty123" },
+          "credits": { "type": "number", "example": 120 }
+        }
+      },
+      "Listing": {
+        "type": "object",
+        "properties": {
+          "_id": { "type": "string", "example": "665f2d4b4c6a8a1b2c3d4e5f" },
+          "seller": { "type": "string", "example": "665f2d4b4c6a8a1b2c3d4e5f" },
+          "skin": { "$ref": "#/components/schemas/Skin" },
+          "price": { "type": "number", "example": 350 },
+          "status": { "type": "string", "example": "active" }
+        }
+      },
+      "ListingRequest": {
+        "type": "object",
+        "required": ["price", "skinData"],
+        "properties": {
+          "price": { "type": "number", "example": 350 },
+          "skinData": { "$ref": "#/components/schemas/SkinRequest" }
+        }
+      },
+      "ListingUpdateRequest": {
+        "type": "object",
+        "required": ["price"],
+        "properties": {
+          "price": { "type": "number", "example": 400 },
+          "status": {
+            "type": "string",
+            "enum": ["active", "sold", "cancelled"],
+            "example": "active"
+          }
+        }
+      },
+      "Transaction": {
+        "type": "object",
+        "properties": {
+          "_id": { "type": "string", "example": "665f2d4b4c6a8a1b2c3d4e5f" },
+          "buyer": { "type": "string", "example": "665f2d4b4c6a8a1b2c3d4e5f" },
+          "seller": { "type": "string", "example": "665f2d4b4c6a8a1b2c3d4e5f" },
+          "listingId": { "type": "string", "example": "665f2d4b4c6a8a1b2c3d4e5f" },
+          "price": { "type": "number", "example": 350 },
+          "createdAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "Message": {
+        "type": "object",
+        "properties": {
+          "message": { "type": "string", "example": "Actie succesvol." }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/": {
+      "get": {
+        "summary": "Home endpoint",
+        "tags": ["Home"],
+        "responses": {
+          "200": { "description": "Welkomtekst" }
+        }
+      }
+    },
+    "/api/auth/register": {
+      "post": {
+        "summary": "Nieuwe gebruiker registreren",
+        "tags": ["Auth"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/RegisterRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Gebruiker geregistreerd" },
+          "400": { "description": "Validatiefout of gebruiker bestaat al" }
+        }
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "summary": "Inloggen en JWT ontvangen",
+        "tags": ["Auth"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/LoginRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Login succesvol" },
+          "400": { "description": "Ongeldige login" }
+        }
+      }
+    },
+    "/api/skins": {
+      "get": {
+        "summary": "Alle skins ophalen",
+        "tags": ["Skins"],
+        "responses": {
+          "200": {
+            "description": "Lijst van skins",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/Skin" }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Nieuwe skin toevoegen",
+        "tags": ["Skins"],
+        "security": [{ "AuthToken": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/SkinRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Skin aangemaakt" },
+          "401": { "description": "Niet ingelogd" },
+          "403": { "description": "Geen adminrechten" }
+        }
+      }
+    },
+    "/api/skins/rarity/{rarity}": {
+      "get": {
+        "summary": "Skins filteren op rarity",
+        "tags": ["Skins"],
+        "parameters": [
+          {
+            "name": "rarity",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": ["Common", "Uncommon", "Rare", "Epic", "Legendary"]
+            }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Gefilterde lijst van skins" },
+          "400": { "description": "Ongeldige rarity" }
+        }
+      }
+    },
+    "/api/skins/{id}": {
+      "get": {
+        "summary": "Skin ophalen op id",
+        "tags": ["Skins"],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": {
+          "200": { "description": "Skin gevonden" },
+          "400": { "description": "Ongeldig ObjectId" },
+          "404": { "description": "Skin niet gevonden" }
+        }
+      },
+      "put": {
+        "summary": "Skin aanpassen",
+        "tags": ["Skins"],
+        "security": [{ "AuthToken": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SkinRequest" } } }
+        },
+        "responses": {
+          "200": { "description": "Skin aangepast" },
+          "403": { "description": "Geen adminrechten" },
+          "404": { "description": "Skin niet gevonden" }
+        }
+      },
+      "delete": {
+        "summary": "Skin verwijderen",
+        "tags": ["Skins"],
+        "security": [{ "AuthToken": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": {
+          "200": { "description": "Skin verwijderd" },
+          "403": { "description": "Geen adminrechten" },
+          "404": { "description": "Skin niet gevonden" }
+        }
+      }
+    },
+    "/api/users": {
+      "get": {
+        "summary": "Alle gebruikers ophalen",
+        "tags": ["Users"],
+        "security": [{ "AuthToken": [] }],
+        "responses": {
+          "200": { "description": "Lijst van gebruikers zonder passwords" },
+          "403": { "description": "Geen adminrechten" }
+        }
+      },
+      "post": {
+        "summary": "Nieuwe gebruiker aanmaken",
+        "tags": ["Users"],
+        "security": [{ "AuthToken": [] }],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/UserRequest" } } }
+        },
+        "responses": {
+          "201": { "description": "Gebruiker aangemaakt" },
+          "403": { "description": "Geen adminrechten" }
+        }
+      }
+    },
+    "/api/users/me": {
+      "get": {
+        "summary": "Eigen profiel ophalen",
+        "tags": ["Users"],
+        "security": [{ "AuthToken": [] }],
+        "responses": {
+          "200": { "description": "Ingelogde gebruiker zonder password" },
+          "401": { "description": "Niet ingelogd" }
+        }
+      }
+    },
+    "/api/users/me/inventory": {
+      "get": {
+        "summary": "Eigen inventory ophalen",
+        "tags": ["Users"],
+        "security": [{ "AuthToken": [] }],
+        "responses": {
+          "200": { "description": "Inventory van ingelogde gebruiker" },
+          "401": { "description": "Niet ingelogd" }
+        }
+      }
+    },
+    "/api/users/{id}": {
+      "get": {
+        "summary": "Gebruiker ophalen op id",
+        "tags": ["Users"],
+        "security": [{ "AuthToken": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": {
+          "200": { "description": "Gebruiker gevonden" },
+          "400": { "description": "Ongeldig ObjectId" },
+          "403": { "description": "Geen adminrechten" }
+        }
+      },
+      "put": {
+        "summary": "Gebruiker aanpassen",
+        "tags": ["Users"],
+        "security": [{ "AuthToken": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/UserRequest" } } }
+        },
+        "responses": {
+          "200": { "description": "Gebruiker aangepast" },
+          "403": { "description": "Geen adminrechten" }
+        }
+      },
+      "delete": {
+        "summary": "Gebruiker verwijderen",
+        "tags": ["Users"],
+        "security": [{ "AuthToken": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": {
+          "200": { "description": "Gebruiker verwijderd" },
+          "403": { "description": "Geen adminrechten" }
+        }
+      }
+    },
+    "/api/listings": {
+      "get": {
+        "summary": "Alle actieve listings ophalen",
+        "tags": ["Listings"],
+        "responses": {
+          "200": { "description": "Lijst van actieve listings" }
+        }
+      },
+      "post": {
+        "summary": "Nieuwe listing maken",
+        "tags": ["Listings"],
+        "security": [{ "AuthToken": [] }],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ListingRequest" } } }
+        },
+        "responses": {
+          "201": { "description": "Listing aangemaakt" },
+          "401": { "description": "Niet ingelogd" }
+        }
+      }
+    },
+    "/api/listings/search": {
+      "get": {
+        "summary": "Listings zoeken",
+        "tags": ["Listings"],
+        "parameters": [
+          { "name": "minPrice", "in": "query", "schema": { "type": "number" } },
+          { "name": "maxPrice", "in": "query", "schema": { "type": "number" } },
+          {
+            "name": "rarity",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": ["Common", "Uncommon", "Rare", "Epic", "Legendary"]
+            }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Gefilterde actieve listings" },
+          "400": { "description": "Ongeldige query parameter" }
+        }
+      }
+    },
+    "/api/listings/my-listings": {
+      "get": {
+        "summary": "Eigen listings ophalen",
+        "tags": ["Listings"],
+        "security": [{ "AuthToken": [] }],
+        "responses": {
+          "200": { "description": "Listings van ingelogde gebruiker" },
+          "401": { "description": "Niet ingelogd" }
+        }
+      }
+    },
+    "/api/listings/{id}": {
+      "get": {
+        "summary": "Listing ophalen op id",
+        "tags": ["Listings"],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": {
+          "200": { "description": "Listing gevonden" },
+          "400": { "description": "Ongeldig ObjectId" },
+          "404": { "description": "Listing niet gevonden" }
+        }
+      },
+      "put": {
+        "summary": "Listing aanpassen",
+        "tags": ["Listings"],
+        "security": [{ "AuthToken": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ListingUpdateRequest" } } }
+        },
+        "responses": {
+          "200": { "description": "Listing aangepast" },
+          "403": { "description": "Geen toegang" },
+          "404": { "description": "Listing niet gevonden" }
+        }
+      },
+      "delete": {
+        "summary": "Listing verwijderen",
+        "tags": ["Listings"],
+        "security": [{ "AuthToken": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": {
+          "200": { "description": "Listing verwijderd" },
+          "403": { "description": "Geen toegang" },
+          "404": { "description": "Listing niet gevonden" }
+        }
+      }
+    },
+    "/api/listings/{id}/buy": {
+      "post": {
+        "summary": "Listing kopen",
+        "tags": ["Listings"],
+        "security": [{ "AuthToken": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": {
+          "200": { "description": "Aankoop succesvol" },
+          "400": { "description": "Onvoldoende credits of listing niet actief" },
+          "404": { "description": "Listing niet gevonden" }
+        }
+      }
+    },
+    "/api/transactions": {
+      "get": {
+        "summary": "Alle transacties ophalen",
+        "tags": ["Transactions"],
+        "security": [{ "AuthToken": [] }],
+        "responses": {
+          "200": { "description": "Lijst van transacties" },
+          "403": { "description": "Geen adminrechten" }
+        }
+      }
+    },
+    "/api/transactions/my-transactions": {
+      "get": {
+        "summary": "Eigen transacties ophalen",
+        "tags": ["Transactions"],
+        "security": [{ "AuthToken": [] }],
+        "responses": {
+          "200": { "description": "Transacties van ingelogde gebruiker" },
+          "401": { "description": "Niet ingelogd" }
+        }
+      }
+    },
+    "/api/transactions/{id}": {
+      "get": {
+        "summary": "Transactie ophalen op id",
+        "tags": ["Transactions"],
+        "security": [{ "AuthToken": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": {
+          "200": { "description": "Transactie gevonden" },
+          "400": { "description": "Ongeldig ObjectId" },
+          "403": { "description": "Geen toegang" },
+          "404": { "description": "Transactie niet gevonden" }
+        }
+      }
+    }
+  }
+}
