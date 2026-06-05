@@ -1,13 +1,16 @@
 @baseUrl = http://localhost:3000
-@token = """
-@adminToken = ""
+@token =
+@adminToken =
+@skinId =
+@userId =
+@listingId =
 
-### Test home page
+### Home
 GET {{baseUrl}}/
 
-########### AUTHENTICATIE & AUTORISATIE
+########### AUTH
 
-### Registreren 
+### 1. Register
 POST {{baseUrl}}/api/auth/register
 Content-Type: application/json
 
@@ -17,23 +20,24 @@ Content-Type: application/json
     "password": "Azerty123"
 }
 
-### Inloggen 
+### 2. Login
 POST {{baseUrl}}/api/auth/login
 Content-Type: application/json
 
 {
-    "email": "joussef@student.vives.be",
+    "email": "joussef3@student.vives.be",
     "password": "Azerty123"
 }
 
-###
-
 ########### SKINS
 
-### GET alle skins 
+### 3. Get all skins
 GET {{baseUrl}}/api/skins
 
-### Nieuwe skin toevoegen (alleen admin)
+### 4. Get skin by id
+GET {{baseUrl}}/api/skins/{{skinId}}
+
+### 5. Create skin - admin only
 POST {{baseUrl}}/api/skins
 Content-Type: application/json
 x-auth-token: {{adminToken}}
@@ -45,15 +49,36 @@ x-auth-token: {{adminToken}}
     "releaseSeason": "Operation Black Ice"
 }
 
-###
+### 6. Update skin - admin only
+PUT {{baseUrl}}/api/skins/{{skinId}}
+Content-Type: application/json
+x-auth-token: {{adminToken}}
 
-########### GEBRUIKERS & MARKTPLAATS
+{
+    "name": "Glacier Updated",
+    "weaponType": "MP7",
+    "rarity": "Legendary",
+    "releaseSeason": "Operation Black Ice"
+}
 
-### GET alle gebruikers (alleen admin)
+### 7. Delete skin - admin only
+DELETE {{baseUrl}}/api/skins/{{skinId}}
+x-auth-token: {{adminToken}}
+
+### ObjectId validation check for skins
+GET {{baseUrl}}/api/skins/not-a-valid-id
+
+########### USERS
+
+### 8. Get all users - admin only
 GET {{baseUrl}}/api/users
 x-auth-token: {{adminToken}}
 
-### Nieuwe gebruiker toevoegen (alleen admin)
+### 9. Get user by id - admin only
+GET {{baseUrl}}/api/users/{{userId}}
+x-auth-token: {{adminToken}}
+
+### 10. Create user - admin only
 POST {{baseUrl}}/api/users
 Content-Type: application/json
 x-auth-token: {{adminToken}}
@@ -65,10 +90,35 @@ x-auth-token: {{adminToken}}
     "credits": 120
 }
 
-### GET alle advertenties
+### 11. Update user - admin only
+PUT {{baseUrl}}/api/users/{{userId}}
+Content-Type: application/json
+x-auth-token: {{adminToken}}
+
+{
+    "username": "NieuweUserUpdated",
+    "email": "nieuwe.user.updated@student.vives.be",
+    "password": "Azerty123",
+    "credits": 250
+}
+
+### 12. Delete user - admin only
+DELETE {{baseUrl}}/api/users/{{userId}}
+x-auth-token: {{adminToken}}
+
+### ObjectId validation check for users
+GET {{baseUrl}}/api/users/not-a-valid-id
+x-auth-token: {{adminToken}}
+
+########### LISTINGS
+
+### 13. Get all active listings
 GET {{baseUrl}}/api/listings
 
-### Skin te koop zetten 
+### 14. Get listing by id
+GET {{baseUrl}}/api/listings/{{listingId}}
+
+### 15. Create listing - logged in user
 POST {{baseUrl}}/api/listings
 Content-Type: application/json
 x-auth-token: {{token}}
@@ -77,8 +127,29 @@ x-auth-token: {{token}}
     "price": 350,
     "skinData": {
         "name": "Glacier",
-        "weaponType": "Assault Rifle",
+        "weaponType": "MP7",
         "rarity": "Epic",
         "releaseSeason": "Operation Black Ice"
     }
 }
+
+### 16. Buy listing - logged in user
+POST {{baseUrl}}/api/listings/{{listingId}}/buy
+x-auth-token: {{token}}
+
+### 17. Update listing - seller or admin
+PUT {{baseUrl}}/api/listings/{{listingId}}
+Content-Type: application/json
+x-auth-token: {{token}}
+
+{
+    "price": 400,
+    "status": "active"
+}
+
+### 18. Delete listing - seller or admin
+DELETE {{baseUrl}}/api/listings/{{listingId}}
+x-auth-token: {{token}}
+
+### ObjectId validation check for listings
+GET {{baseUrl}}/api/listings/not-a-valid-id
