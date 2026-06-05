@@ -28,6 +28,28 @@ router.get('/', [auth, admin], async (req, res) => {
     }
 });
 
+router.get('/me', auth, async (req, res) => {
+    try {
+        const user = await User.findById(req.user._id).select('-password');
+        if (!user) return res.status(404).send({ message: 'Gebruiker niet gevonden.' });
+
+        res.send(user);
+    } catch (error) {
+        res.status(500).send({ message: 'Serverfout bij ophalen profiel.' });
+    }
+});
+
+router.get('/me/inventory', auth, async (req, res) => {
+    try {
+        const user = await User.findById(req.user._id).select('inventory');
+        if (!user) return res.status(404).send({ message: 'Gebruiker niet gevonden.' });
+
+        res.send(user.inventory);
+    } catch (error) {
+        res.status(500).send({ message: 'Serverfout bij ophalen inventory.' });
+    }
+});
+
 router.get('/:id', [auth, admin, validateObjectId], async (req, res) => {
     try {
         const user = await User.findById(req.params.id).select('-password');

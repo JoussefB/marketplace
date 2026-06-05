@@ -39,6 +39,43 @@ router.get('/', async (req, res) => {
     }
 });
 
+router.get('/search', async (req, res) => {
+    try {
+        const schema = joi.object({
+            maxPrice: joi.number().min(1),
+            minPrice: joi.number().min(1),
+            rarity: joi.string().valid('Common', 'Uncommon', 'Rare', 'Epic', 'Legendary')
+        });
+
+        const { error } = schema.validate(req.query);
+        if (error) return res.status(400).send({ message: error.details[0].message });
+
+        const filter = { status: 'active' };
+
+        if (req.query.minPrice || req.query.maxPrice) {
+            filter.price = {};
+            if (req.query.minPrice) filter.price.$gte = Number(req.query.minPrice);
+            if (req.query.maxPrice) filter.price.$lte = Number(req.query.maxPrice);
+        }
+
+        if (req.query.rarity) filter['skin.rarity'] = req.query.rarity;
+
+        const listings = await Listing.find(filter).populate('seller', 'username');
+        res.send(listings);
+    } catch (error) {
+        res.status(500).send({ message: 'Serverfout bij het zoeken naar advertenties.' });
+    }
+});
+
+router.get('/my-listings', auth, async (req, res) => {
+    try {
+        const listings = await Listing.find({ seller: req.user._id }).populate('seller', 'username');
+        res.send(listings);
+    } catch (error) {
+        res.status(500).send({ message: 'Serverfout bij ophalen van je advertenties.' });
+    }
+});
+
 router.get('/:id', validateObjectId, async (req, res) => {
     try {
         const listing = await Listing.findById(req.params.id).populate('seller', 'username');

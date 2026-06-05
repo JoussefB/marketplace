@@ -26,6 +26,18 @@ router.get('/', async (req, res) => {
     }
 });
 
+router.get('/rarity/:rarity', async (req, res) => {
+    try {
+        const { error } = joi.string().valid("Common","Uncommon","Rare","Epic","Legendary").validate(req.params.rarity);
+        if (error) return res.status(400).send({ message: 'Ongeldige rarity.' });
+
+        const skins = await Skin.find({ rarity: req.params.rarity });
+        res.send(skins);
+    } catch (error) {
+        res.status(500).send({ message: 'Er ging iets fout bij het filteren van skins.' });
+    }
+});
+
 router.get('/:id', validateObjectId, async (req, res) => {
     try {
         const skin = await Skin.findById(req.params.id);

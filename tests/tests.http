@@ -4,6 +4,7 @@
 @skinId =
 @userId =
 @listingId =
+@transactionId =
 
 ### Home
 GET {{baseUrl}}/
@@ -68,11 +69,22 @@ x-auth-token: {{adminToken}}
 ### ObjectId validation check for skins
 GET {{baseUrl}}/api/skins/not-a-valid-id
 
+### Filter skins by rarity
+GET {{baseUrl}}/api/skins/rarity/Epic
+
 ########### USERS
 
 ### 8. Get all users - admin only
 GET {{baseUrl}}/api/users
 x-auth-token: {{adminToken}}
+
+### Get my profile
+GET {{baseUrl}}/api/users/me
+x-auth-token: {{token}}
+
+### Get my inventory
+GET {{baseUrl}}/api/users/me/inventory
+x-auth-token: {{token}}
 
 ### 9. Get user by id - admin only
 GET {{baseUrl}}/api/users/{{userId}}
@@ -118,6 +130,13 @@ GET {{baseUrl}}/api/listings
 ### 14. Get listing by id
 GET {{baseUrl}}/api/listings/{{listingId}}
 
+### Get my listings
+GET {{baseUrl}}/api/listings/my-listings
+x-auth-token: {{token}}
+
+### Search listings
+GET {{baseUrl}}/api/listings/search?maxPrice=500&rarity=Epic
+
 ### 15. Create listing - logged in user
 POST {{baseUrl}}/api/listings
 Content-Type: application/json
@@ -153,3 +172,21 @@ x-auth-token: {{token}}
 
 ### ObjectId validation check for listings
 GET {{baseUrl}}/api/listings/not-a-valid-id
+
+########### TRANSACTIONS
+
+### Get all transactions - admin only
+GET {{baseUrl}}/api/transactions
+x-auth-token: {{adminToken}}
+
+### Get my transactions
+GET {{baseUrl}}/api/transactions/my-transactions
+x-auth-token: {{token}}
+
+### Get transaction by id
+GET {{baseUrl}}/api/transactions/{{transactionId}}
+x-auth-token: {{token}}
+
+### ObjectId validation check for transactions
+GET {{baseUrl}}/api/transactions/not-a-valid-id
+x-auth-token: {{token}}

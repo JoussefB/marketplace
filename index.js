@@ -5,6 +5,7 @@ const skinsRouter = require('./routes/skins');
 const usersRouter = require('./routes/users');
 const listingsRouter = require('./routes/listings');
 const authRouter = require('./routes/auth');
+const transactionsRouter = require('./routes/transactions');
 
 const app = express();
 
@@ -20,6 +21,7 @@ app.use('/api/skins',skinsRouter);
 app.use('/api/users',usersRouter);
 app.use('/api/listings',listingsRouter);
 app.use('/api/auth',authRouter);
+app.use('/api/transactions',transactionsRouter);
 
 
 app.get('/', (req, res) => {

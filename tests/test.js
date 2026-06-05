@@ -194,6 +194,37 @@ test('GET /api/users is admin-only and never returns passwords', async () => {
     assert.strictEqual(res.body[0].password, undefined);
 });
 
+test('GET /api/users/me returns the logged-in user', async () => {
+    const user = await createUser({ username: 'ProfileUser' });
+
+    const res = await sendRequest('GET', '/api/users/me', {
+        token: createToken(user)
+    });
+
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(res.body.username, 'ProfileUser');
+    assert.strictEqual(res.body.password, undefined);
+});
+
+test('GET /api/users/me/inventory returns the logged-in user inventory', async () => {
+    const user = await createUser();
+    user.inventory.push({
+        name: 'Glacier',
+        weaponType: 'MP7',
+        rarity: 'Epic',
+        releaseSeason: 'Operation Black Ice'
+    });
+    await user.save();
+
+    const res = await sendRequest('GET', '/api/users/me/inventory', {
+        token: createToken(user)
+    });
+
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(res.body.length, 1);
+    assert.strictEqual(res.body[0].name, 'Glacier');
+});
+
 test('GET /api/users/:id validates ObjectId values', async () => {
     const admin = await createUser({ isAdmin: true });
 
@@ -202,6 +233,27 @@ test('GET /api/users/:id validates ObjectId values', async () => {
     });
 
     assert.strictEqual(res.status, 400);
+});
+
+test('GET /api/skins/rarity/:rarity filters skins by rarity', async () => {
+    await Skin.create({
+        name: 'Glacier',
+        weaponType: 'MP7',
+        rarity: 'Epic',
+        releaseSeason: 'Operation Black Ice'
+    });
+    await Skin.create({
+        name: 'Black Ice',
+        weaponType: 'R4-C',
+        rarity: 'Rare',
+        releaseSeason: 'Operation Black Ice'
+    });
+
+    const res = await sendRequest('GET', '/api/skins/rarity/Epic');
+
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(res.body.length, 1);
+    assert.strictEqual(res.body[0].rarity, 'Epic');
 });
 
 test('POST /api/listings lets a logged-in user create a listing', async () => {
@@ -223,6 +275,72 @@ test('POST /api/listings lets a logged-in user create a listing', async () => {
     assert.strictEqual(res.status, 201);
     assert.strictEqual(res.body.price, 350);
     assert.strictEqual(res.body.seller, seller._id.toString());
+});
+
+test('GET /api/listings/my-listings returns only the logged-in user listings', async () => {
+    const seller = await createUser();
+    const otherSeller = await createUser();
+
+    await Listing.create({
+        seller: seller._id,
+        price: 350,
+        skin: {
+            name: 'Glacier',
+            weaponType: 'MP7',
+            rarity: 'Epic',
+            releaseSeason: 'Operation Black Ice'
+        }
+    });
+    await Listing.create({
+        seller: otherSeller._id,
+        price: 250,
+        skin: {
+            name: 'Black Ice',
+            weaponType: 'R4-C',
+            rarity: 'Rare',
+            releaseSeason: 'Operation Black Ice'
+        }
+    });
+
+    const res = await sendRequest('GET', '/api/listings/my-listings', {
+        token: createToken(seller)
+    });
+
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(res.body.length, 1);
+    assert.strictEqual(res.body[0].seller._id, seller._id.toString());
+});
+
+test('GET /api/listings/search filters active listings by max price and rarity', async () => {
+    const seller = await createUser();
+
+    await Listing.create({
+        seller: seller._id,
+        price: 350,
+        skin: {
+            name: 'Glacier',
+            weaponType: 'MP7',
+            rarity: 'Epic',
+            releaseSeason: 'Operation Black Ice'
+        }
+    });
+    await Listing.create({
+        seller: seller._id,
+        price: 800,
+        skin: {
+            name: 'Gold Dust',
+            weaponType: 'MP5',
+            rarity: 'Legendary',
+            releaseSeason: 'Operation Dust Line'
+        }
+    });
+
+    const res = await sendRequest('GET', '/api/listings/search?maxPrice=500&rarity=Epic');
+
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(res.body.length, 1);
+    assert.strictEqual(res.body[0].price, 350);
+    assert.strictEqual(res.body[0].skin.rarity, 'Epic');
 });
 
 test('POST /api/listings/:id/buy transfers credits, embeds skin and logs transaction', async () => {
@@ -256,6 +374,46 @@ test('POST /api/listings/:id/buy transfers credits, embeds skin and logs transac
     assert.strictEqual(updatedListing.status, 'sold');
     assert.notStrictEqual(transaction, null);
     assert.strictEqual(transaction.price, 350);
+});
+
+test('GET /api/transactions/my-transactions returns transactions for logged-in user', async () => {
+    const seller = await createUser();
+    const buyer = await createUser();
+    const listing = await Listing.create({
+        seller: seller._id,
+        price: 350,
+        skin: {
+            name: 'Glacier',
+            weaponType: 'MP7',
+            rarity: 'Epic',
+            releaseSeason: 'Operation Black Ice'
+        }
+    });
+
+    await Transaction.create({
+        buyer: buyer._id,
+        seller: seller._id,
+        listingId: listing._id,
+        price: 350
+    });
+
+    const res = await sendRequest('GET', '/api/transactions/my-transactions', {
+        token: createToken(buyer)
+    });
+
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(res.body.length, 1);
+    assert.strictEqual(res.body[0].price, 350);
+});
+
+test('GET /api/transactions is admin-only', async () => {
+    const normalUser = await createUser();
+
+    const res = await sendRequest('GET', '/api/transactions', {
+        token: createToken(normalUser)
+    });
+
+    assert.strictEqual(res.status, 403);
 });
 
 test('GET /api/listings/:id validates ObjectId values', async () => {
