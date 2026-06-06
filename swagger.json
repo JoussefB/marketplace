@@ -94,6 +94,7 @@
         "properties": {
           "_id": { "type": "string", "example": "665f2d4b4c6a8a1b2c3d4e5f" },
           "seller": { "type": "string", "example": "665f2d4b4c6a8a1b2c3d4e5f" },
+          "skinId": { "type": "string", "example": "665f2d4b4c6a8a1b2c3d4e5f" },
           "skin": { "$ref": "#/components/schemas/Skin" },
           "price": { "type": "number", "example": 350 },
           "status": { "type": "string", "example": "active" }
@@ -101,10 +102,10 @@
       },
       "ListingRequest": {
         "type": "object",
-        "required": ["price", "skinData"],
+        "required": ["price", "skinId"],
         "properties": {
           "price": { "type": "number", "example": 350 },
-          "skinData": { "$ref": "#/components/schemas/SkinRequest" }
+          "skinId": { "type": "string", "example": "665f2d4b4c6a8a1b2c3d4e5f" }
         }
       },
       "ListingUpdateRequest": {

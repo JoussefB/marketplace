@@ -147,12 +147,7 @@ x-auth-token: {{token}}
 
 {
     "price": 350,
-    "skinData": {
-        "name": "Glacier",
-        "weaponType": "MP7",
-        "rarity": "Epic",
-        "releaseSeason": "Operation Black Ice"
-    }
+    "skinId": "{{skinId}}"
 }
 
 ### 16. Buy listing - logged in user

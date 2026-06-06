@@ -104,10 +104,11 @@ Collections:
 De collections zijn met elkaar verbonden:
 
 - Een listing verwijst naar een seller uit `users`.
+- Een listing verwijst naar een skin uit `skins`.
 - Een transaction verwijst naar buyer en seller uit `users`.
 - Een transaction verwijst naar een listing uit `listings`.
 - Users hebben een inventory met embedded skin documents.
-- Listings bewaren een embedded skin document, zodat de verkochte skin op dat moment vastligt.
+- Listings bewaren daarnaast een embedded skin snapshot, zodat de verkochte skin op dat moment vastligt.
 
 ## Endpoints
 
@@ -161,6 +162,15 @@ De collections zijn met elkaar verbonden:
 | POST | `/api/listings/:id/buy` | User | Listing kopen |
 | PUT | `/api/listings/:id` | Seller/Admin | Listing aanpassen |
 | DELETE | `/api/listings/:id` | Seller/Admin | Listing verwijderen |
+
+Voorbeeld body om een listing te maken:
+
+```json
+{
+  "price": 350,
+  "skinId": "665f2d4b4c6a8a1b2c3d4e5f"
+}
+```
 
 Voorbeeld zoekroute:
 

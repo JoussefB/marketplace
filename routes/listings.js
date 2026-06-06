@@ -4,18 +4,14 @@ const joi = require('joi');
 const Listing = require('../models/Listing');
 const Transaction = require('../models/Transaction');
 const { User } = require('../models/User');
+const { Skin } = require('../models/Skin');
 const auth = require('../middleware/auth');
 const validateObjectId = require('../middleware/validateObjectId');
 
 function validateListing(listing) {
     const schema = joi.object({
         price: joi.number().min(1).required(),
-        skinData: joi.object({
-            name: joi.string().required(),
-            weaponType: joi.string().required(),
-            rarity: joi.string().required(),
-            releaseSeason: joi.string().allow('', null)
-        }).required()
+        skinId: joi.string().hex().length(24).required()
     });
     return schema.validate(listing);
 }
@@ -32,7 +28,9 @@ function validateListingUpdate(listing) {
 router.get('/', async (req, res) => {
     try {
        
-        const listings = await Listing.find({ status: 'active' }).populate('seller', 'username');
+        const listings = await Listing.find({ status: 'active' })
+            .populate('seller', 'username')
+            .populate('skinId');
         res.send(listings);
     } catch (error) {
         res.status(500).send({ message: 'Serverfout bij het ophalen van de marktplaats.' });
@@ -60,7 +58,9 @@ router.get('/search', async (req, res) => {
 
         if (req.query.rarity) filter['skin.rarity'] = req.query.rarity;
 
-        const listings = await Listing.find(filter).populate('seller', 'username');
+        const listings = await Listing.find(filter)
+            .populate('seller', 'username')
+            .populate('skinId');
         res.send(listings);
     } catch (error) {
         res.status(500).send({ message: 'Serverfout bij het zoeken naar advertenties.' });
@@ -69,7 +69,9 @@ router.get('/search', async (req, res) => {
 
 router.get('/my-listings', auth, async (req, res) => {
     try {
-        const listings = await Listing.find({ seller: req.user._id }).populate('seller', 'username');
+        const listings = await Listing.find({ seller: req.user._id })
+            .populate('seller', 'username')
+            .populate('skinId');
         res.send(listings);
     } catch (error) {
         res.status(500).send({ message: 'Serverfout bij ophalen van je advertenties.' });
@@ -78,7 +80,9 @@ router.get('/my-listings', auth, async (req, res) => {
 
 router.get('/:id', validateObjectId, async (req, res) => {
     try {
-        const listing = await Listing.findById(req.params.id).populate('seller', 'username');
+        const listing = await Listing.findById(req.params.id)
+            .populate('seller', 'username')
+            .populate('skinId');
         if (!listing) return res.status(404).send({ message: 'Advertentie niet gevonden.' });
 
         res.send(listing);
@@ -95,9 +99,18 @@ router.post('/',auth, async (req, res) => {
         const seller = await User.findById(req.user._id);
         if (!seller) return res.status(404).send({ message: 'Verkoper niet gevonden.' });
 
+        const skin = await Skin.findById(req.body.skinId);
+        if (!skin) return res.status(404).send({ message: 'Skin niet gevonden.' });
+
         const listing = new Listing({
             seller: req.user._id,
-            skin: req.body.skinData,
+            skinId: skin._id,
+            skin: {
+                name: skin.name,
+                weaponType: skin.weaponType,
+                rarity: skin.rarity,
+                releaseSeason: skin.releaseSeason
+            },
             price: req.body.price
         });
 

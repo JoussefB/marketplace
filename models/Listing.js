@@ -7,6 +7,11 @@ const listingSchema = new mongoose.Schema({
         ref: 'User', 
         required: true
     },
+    skinId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Skin',
+        required: true
+    },
     skin: {
         type: skinSchema,
         required: true

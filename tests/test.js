@@ -266,23 +266,41 @@ test('GET /api/skins/rarity/:rarity filters skins by rarity', async () => {
 
 test('POST /api/listings lets a logged-in user create a listing', async () => {
     const seller = await createUser();
+    const skin = await Skin.create({
+        name: 'Glacier',
+        weaponType: 'MP7',
+        rarity: 'Epic',
+        releaseSeason: 'Operation Black Ice'
+    });
 
     const res = await sendRequest('POST', '/api/listings', {
         token: createToken(seller),
         body: {
             price: 350,
-            skinData: {
-                name: 'Glacier',
-                weaponType: 'MP7',
-                rarity: 'Epic',
-                releaseSeason: 'Operation Black Ice'
-            }
+            skinId: skin._id.toString()
         }
     });
 
     assert.strictEqual(res.status, 201);
     assert.strictEqual(res.body.price, 350);
     assert.strictEqual(res.body.seller, seller._id.toString());
+    assert.strictEqual(res.body.skinId, skin._id.toString());
+    assert.strictEqual(res.body.skin.name, 'Glacier');
+});
+
+test('POST /api/listings returns 404 when the linked skin does not exist', async () => {
+    const seller = await createUser();
+
+    const res = await sendRequest('POST', '/api/listings', {
+        token: createToken(seller),
+        body: {
+            price: 350,
+            skinId: new mongoose.Types.ObjectId().toString()
+        }
+    });
+
+    assert.strictEqual(res.status, 404);
+    assert.strictEqual(res.body.message, 'Skin niet gevonden.');
 });
 
 test('GET /api/listings/my-listings returns only the logged-in user listings', async () => {
@@ -291,6 +309,7 @@ test('GET /api/listings/my-listings returns only the logged-in user listings', a
 
     await Listing.create({
         seller: seller._id,
+        skinId: new mongoose.Types.ObjectId(),
         price: 350,
         skin: {
             name: 'Glacier',
@@ -301,6 +320,7 @@ test('GET /api/listings/my-listings returns only the logged-in user listings', a
     });
     await Listing.create({
         seller: otherSeller._id,
+        skinId: new mongoose.Types.ObjectId(),
         price: 250,
         skin: {
             name: 'Black Ice',
@@ -324,6 +344,7 @@ test('GET /api/listings/search filters active listings by max price and rarity',
 
     await Listing.create({
         seller: seller._id,
+        skinId: new mongoose.Types.ObjectId(),
         price: 350,
         skin: {
             name: 'Glacier',
@@ -334,6 +355,7 @@ test('GET /api/listings/search filters active listings by max price and rarity',
     });
     await Listing.create({
         seller: seller._id,
+        skinId: new mongoose.Types.ObjectId(),
         price: 800,
         skin: {
             name: 'Gold Dust',
@@ -356,6 +378,7 @@ test('POST /api/listings/:id/buy transfers credits, embeds skin and logs transac
     const buyer = await createUser({ credits: 500 });
     const listing = await Listing.create({
         seller: seller._id,
+        skinId: new mongoose.Types.ObjectId(),
         price: 350,
         skin: {
             name: 'Glacier',
@@ -389,6 +412,7 @@ test('GET /api/transactions/my-transactions returns transactions for logged-in u
     const buyer = await createUser();
     const listing = await Listing.create({
         seller: seller._id,
+        skinId: new mongoose.Types.ObjectId(),
         price: 350,
         skin: {
             name: 'Glacier',
