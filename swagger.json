@@ -1,11 +1,15 @@
 {
   "openapi": "3.0.0",
   "info": {
-    "title": "Rainbow Six Siege Marketplace API",
+    "title": "Marketplace API",
     "version": "1.0.0",
-    "description": "REST API voor een Rainbow Six Siege marketplace met users, skins, listings en transactions."
+    "description": "REST API voor een marketplace met users, skins, listings en transactions."
   },
   "servers": [
+    {
+      "url": "https://marketplace-xbmm.onrender.com",
+      "description": "Live Render server"
+    },
     {
       "url": "http://localhost:3000",
       "description": "Lokale development server"

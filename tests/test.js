@@ -113,7 +113,7 @@ test('GET /api-docs.json returns the OpenAPI documentation', async () => {
 
     assert.strictEqual(res.status, 200);
     assert.strictEqual(res.body.openapi, '3.0.0');
-    assert.strictEqual(res.body.info.title, 'Rainbow Six Siege Marketplace API');
+    assert.strictEqual(res.body.info.title, 'Marketplace API');
 });
 
 test('POST /api/auth/login returns a JWT for valid credentials', async () => {
