@@ -5,6 +5,7 @@ const jwt = require('jsonwebtoken');
 const joi = require('joi');
 const mongoose = require('mongoose');
 const { User } = require('../models/User');
+const { getJwtSecret } = require('../config');
 
 function isDatabaseUnavailable(error) {
     return mongoose.connection.readyState !== 1 || error.name === 'MongooseServerSelectionError';
@@ -77,7 +78,7 @@ router.post('/login', async (req, res) => {
 
         const token = jwt.sign(
             { _id: user._id, username: user.username, isAdmin: user.isAdmin }, 
-            process.env.JWT_SECRET || 'vives_geheim_token', 
+            getJwtSecret(), 
             { expiresIn: '1h' }
         );
 

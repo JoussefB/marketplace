@@ -4,13 +4,15 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
 
+process.env.JWT_SECRET = process.env.JWT_SECRET || 'test_secret';
+
 const { app } = require('../index');
 const { User } = require('../models/User');
 const { Skin } = require('../models/Skin');
 const Listing = require('../models/Listing');
 const Transaction = require('../models/Transaction');
 
-const jwtSecret = process.env.JWT_SECRET || 'vives_geheim_token';
+const jwtSecret = process.env.JWT_SECRET;
 const testMongoUri = process.env.TEST_MONGO_URI || 'mongodb://127.0.0.1:27017/marketplace_test';
 
 let server;

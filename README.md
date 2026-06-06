@@ -215,6 +215,7 @@ MongoDB draait via MongoDB Atlas. De connection string staat niet in de code, ma
 
 - Wachtwoorden worden gehasht met bcrypt.
 - JWT tokens verlopen na 1 uur.
+- `JWT_SECRET` is verplicht en staat in environment variables.
 - Admin routes zijn beveiligd met auth en admin middleware.
 - ObjectId parameters worden gevalideerd voor MongoDB queries.
 - Gebruikers kunnen zichzelf geen admin maken via register/login.
